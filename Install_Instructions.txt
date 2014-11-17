@@ -12,13 +12,13 @@ apt-get install -y openjdk-7-jre-headless, nginx, pv, htop, socat,
 ufw allow 80
 ufw allow 443
 
-# Allow syslog TCP/UDP in
+Allow syslog TCP/UDP in
 ufw allow 514
 
-# Allow syslog SSL in
+Allow syslog SSL in
 ufw allow 1514
 
-# Allow 
+Allow ElasticSearch (not for production)
 ufw allow 9200
 
 ##############################################
