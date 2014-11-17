@@ -1,0 +1,91 @@
+# Sagan bro-ids.rules
+# Copyright (c) 2009-2014, Quadrant Information Security <www.quadrantsec.com>
+# All rights reserved.
+#
+# Please submit any custom rules or ideas to sagan-submit@quadrantsec.com or the sagan-sigs mailing list
+#
+#*************************************************************
+#  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+#  following conditions are met:
+#
+#  * Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+#    disclaimer.
+#  * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the
+#    following disclaimer in the documentation and/or other materials provided with the distribution.
+#  * Neither the name of the nor the names of its contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS AS IS AND ANY EXPRESS OR IMPLIED WARRANTIES,
+#  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+#  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+#  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+#  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#*****************************************************************************
+#
+# Note:  Your syslog daemon will need to forward Bro logs to your Sagan server.  With syslog-ng,  you would do 
+# something like this:
+#
+# destination sagan_box { udp("10.10.10.10" port(514)); } ;
+# source s_bro_notice { file("/var/log/bro/log/current/notice.log" flags(no-parse) program_override("bro")); };
+# log { source(s_bro_notice); destination(sagan_box); };
+# 
+# For rsyslog,  see: http://www.rsyslog.com/doc/imfile.html
+# 
+# The syslog "program" field will _need_ to be "bro"! 
+#
+#*****************************************************************************
+#
+# Submitted by Brad Doctor (July 2nd, 2010).  For more information see
+# http://www.bro-ids.org/ 
+# 
+# (Legacy Bro rules) - Now disbaled by default
+
+#alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "[BRO] Successful Password Guessing"; content: "SuccessfulPasswordGuessing"; program: bro; parse_src_ip: 1; parse_dst_ip: 2; classtype: successful-user; reference: url,wiki.quadrantsec.com/bin/view/Main/5000883; sid: 5000883; threshold: type limit, track by_src, count 5, seconds 120; rev:2;)
+#alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "[BRO] Protocol Violation"; content: "ProtocolViolation"; program: bro; parse_src_ip: 1; parse_dst_ip: 2; classtype: policy-violation; reference: url,wiki.quadrantsec.com/bin/view/Main/5000884; sid: 5000884; threshold: type limit, track by_src, count 5, seconds 120; rev:2;)
+#alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "[BRO] Sensitive Login"; content: "SensitiveLogin"; program: bro; parse_src_ip: 1; parse_dst_ip: 2; classtype: suspicious-login; reference: url,wiki.quadrantsec.com/bin/view/Main/5000885; sid: 5000885; threshold: type limit, track by_src, count 5, seconds 120; rev:2;)
+#alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "[BRO] Sensitive Connection"; content: "SensitiveConnection"; program: parse_src_ip: 1; parse_dst_ip: 2; bro; classtype: suspicious-traffic;   reference: url,wiki.quadrantsec.com/bin/view/Main/5000886; sid: 5000886; threshold: type limit, track by_src, count 5, seconds 120; rev:2;)
+#alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "[BRO] Sensitive Username in password"; program: bro; parse_src_ip: 1; parse_dst_ip: 2; content: "SensitiveUsernameInPassword"; classtype: successful-admin; url,wiki.quadrantsec.com/bin/view/Main/5000887; sid: 5000887; threshold: type limit, track by_src, count 5, seconds 120; rev:2;)
+
+# Robert Nunley & Champ Clark -  06/10/2014
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET $SSH_PORT (msg:"[BRO] SSH Password_Guessing"; content: "SSH|3a 3a|Password_Guessing"; program: bro; classtype: misc-attack; parse_src_ip: 1; parse_dst_ip: 2; threshold: type limit, track by_src, count 5, seconds 120; reference: url,wiki.quadrantsec.com/bin/view/Main/5002063; sid: 5002063; rev:1;) 
+
+# Note: You will need licensing to use the Team Cymru Malware Hash Registry for corporate use.  See http://www.team-cymru.org/Services/MHR/
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[BRO] TeamCymruMalwareHashRegistry Match"; content: "TeamCymruMalwareHashRegistry|3a 3a|Match"; parse_src_ip: 1; parse_dst_ip: 2; reference: url,www.team-cymru.org/Services/MHR/; classtype: trojan-activity; sid: 5002064; rev:1;) 
+
+# Triggers many F/P
+#alert tcp $EXTERNAL_NET any -> $HOME_NET $HTTP_PORT (msg: "[BRO] HTTP SQL_Injection_Attacker"; content: "HTTP|3a 3a|SQL_Injection_Attacker"; parse_src_ip: 1; parse_dst_ip: 2; reference: url,wiki.quadrantsec.com/bin/view/Main/5002065; classtype: web-application-attack; sid: 5002065; rev:1;)
+#alert tcp $EXTERNAL_NET any -> $HTTP_PORT any (msg: "[BRO] HTTP SQL_Injection_Victim"; content: "HTTP|3a 3a|SQL_Injection_Victim"; parse_src_ip: 1; parse_dst_ip: 2; reference: url,wiki.quadrantsec.com/bin/view/Main/5002066; classtype: web-application-attack; sid: 5002066; rev:1;)
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET $SSH_PORT (msg: "[BRO] SSH Login_By_Password_Guesser"; content: "SSH|3a 3a|Login_By_Password_Guesser"; parse_src_ip: 1; parse_dst_ip: 2; reference: url,wiki.quadrantsec.com/bin/view/Main/5002067; classtype: successful-user; sid: 5002067; rev:1;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET $SSH_PORT (msg: "[BRO] SSH Watched_Country_Login"; content: "SSH|3a 3a|Watched_Country_Login"; parse_src_ip: 1; parse_dst_ip: 2; reference: url,wiki.quadrantsec.com/bin/view/Main/5002068; classtype: successful-user; sid: 5002068; rev:1;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET $HTTPS_PORT (msg: "[BRO] 10+ SSL Invalid_Server_Cert in 30 seconds"; content: "SSL|3a 3a|Invalid_Server_Cert"; parse_src_ip: 1; parse_dst_ip: 2; after: track by_src, count 10, seconds 30; threshold: type limit, track by_src, count 5, seconds 300; reference: url,wiki.quadrantsec.com/bin/view/Main/5002069; classtype: suspicious-traffic; sid: 5002069; rev:2;)
+
+# Robert Nunley & Champ Clark -  06/11/2014
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET $HTTPS_PORT (msg: "[BRO] 10+ unable to get local issuer certificate in 30 seconds"; content: "unable to get local issuer certificate"; parse_src_ip: 1; parse_dst_ip: 2; after: track by_src, count 10, seconds 30; threshold: type limit, track by_src, count 5, seconds 300; reference: url,wiki.quadrantsec.com/bin/view/Main/5002070; classtype: suspicious-traffic; sid: 5002070; rev:1;)
+
+# These rules are based on Bro scripts from Liam Randall.   They are located at: https://github.com/LiamRandall/BroMalware-Exercise.  These will need to be loaded into Bro to trigger!
+
+# https://github.com/LiamRandall/BroMalware-Exercise/tree/master/solutions/zeroaccess
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET $HTTPS_PORT (msg: "[BRO] ZeroAccess ZeroAccess_Client"; content: "ZeroAccess|3a 3a|ZeroAccess_Client"; parse_src_ip: 1; parse_dst_ip: 2; threshold: type limit, track by_src, count 5, seconds 300; classtype: trojan-activity; reference: url,wiki.quadrantsec.com/bin/view/Main/5002070; url,github.com/LiamRandall/BroMalware-Exercise/tree/master/solutions/zeroaccess; sid: 5002071; rev:1;)
+
+# https://github.com/LiamRandall/BroMalware-Exercise/tree/master/solutions/lurk0
+# Bitcoin mining detection
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET $HTTPS_PORT (msg: "[BRO] Bitcoin Miner"; content: "Bitcoin|3a 3a|Miner"; parse_src_ip: 1; parse_dst_ip: 2; threshold: type limit, track by_src, count 10, seconds 300; classtype: trojan-activity; reference: url,wiki.quadrantsec.com/bin/view/Main/5002074; url,github.com/LiamRandall/BroMalware-Exercise/tree/master/solutions/lurk0; sid: 5002074; rev:1;)
+
+# https://github.com/LiamRandall/BroMalware-Exercise/tree/master/solutions/lurk0
+# Lurk0 RAT ::Lurk0_Client
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET $HTTPS_PORT (msg: "[BRO] Probable LURK0 RAT C&C Access"; content: "Lurk0|3a 3a|Lurk0_Client"; parse_src_ip: 1; parse_dst_ip: 2; classtype: trojan-activity; reference: url,wiki.quadrantsec.com/bin/view/Main/5002072; url,github.com/LiamRandall/BroMalware-Exercise/tree/master/solutions/lurk0; sid: 5002072; rev:1;)
+
+# Sidejacking
+# Added in the main Bro repo.  See http://matthias.vallentin.net/blog/2010/10/taming-the-sheep-detecting-sidejacking-with-bro/ for more details.
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET $HTTPS_PORT (msg: "[BRO] Sidejacking attach detected"; content: "Sidejacking"; parse_src_ip: 1; parse_dst_ip: 2; classtype: suspicious-traffic; reference: url,wiki.quadrantsec.com/bin/view/Main/5002073; reference: url,matthias.vallentin.net/blog/2010/10/taming-the-sheep-detecting-sidejacking-with-bro; sid: 5002073; rev:1;)
+

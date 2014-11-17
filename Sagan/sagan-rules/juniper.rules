@@ -1,0 +1,107 @@
+# Sagan juniper.rules
+# Copyright (c) 2009-2014, Quadrant Information Security <www.quadrantsec.com>
+# All rights reserved.
+#
+# Please submit any custom rules or ideas to sagan-submit@quadrantsec.com or the sagan-sigs mailing list
+#
+#*************************************************************
+#  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+#  following conditions are met:
+#
+#  * Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+#    disclaimer.
+#  * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the
+#    following disclaimer in the documentation and/or other materials provided with the distribution.
+#  * Neither the name of the nor the names of its contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS AS IS AND ANY EXPRESS OR IMPLIED WARRANTIES,
+#  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+#  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+#  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+#  USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#*************************************************************
+#
+# Submitted by Brad Doctor (July 2nd, 2010).  
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] AS group missing"; content: "no group for"; content:"from AS"; classtype: network-event; sid: 5000888; rev:1;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] Duplicate IP address"; content: "KERN_ARP_DUPLICATE_ADDR"; classtype: network-event; sid: 5000889; rev:1;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] BGP missing MD5 digest"; content: "missing MD5 digest"; classtype: network-event; sid: 5000890; rev:1;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] ARP address change"; content: "KERN_ARP_ADDR_CHANGE"; classtype: network-event; sid: 5000891; rev:1;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] BGP no route to host"; content: "bgp_connect_start"; content:"No route to host"; classtype: network-event; sid: 5000892; rev:1;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] Login authentication error"; content: "LOGIN_PAM_AUTHENTICATION_ERROR"; content:"PAM authentication error for user"; classtype: network-event; sid: 5000893; threshold:type limit, track by_src, count 5, seconds 120; rev:1;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] Possible authentication dictionary attack"; content: "LOGIN_INVALID_LOCAL_USER"; content:"No entry in local password"; classtype: network-event; sid: 5000894; threshold:type limit, track by_src, count 5, seconds 120; rev:1;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] SONET Alarm"; content: "Asserting SONET alarm"; classtype: network-event; sid: 5000895; threshold:type limit, track by_src, count 5, seconds 120; rev:1;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] Possible SONET ring failure"; content: "Major alarm set"; content:"SONET path remote failure indicator";classtype: network-event; sid: 5000896; rev:1;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] SDH Alarm"; content: "Asserting SDH alarm"; classtype: network-event; sid: 5000897; threshold:type limit, track by_src, count 5, seconds 120; rev:1;)
+
+# Champ Clark (03/01/2013)
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] SSHD_LOGIN_ATTEMPTS_THRESHOLD - Brute Force"; content: "SSHD_LOGIN_ATTEMPTS_THRESHOLD"; program: sshd; classtype: unsuccessful-user; sid: 5001642; threshold: type limit, track by_src, count 5, seconds 300; reference: url,wiki.quadrantsec.com/bin/view/Main/5001642; rev:2;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] SSHD_LOGIN_FAILED_LIMIT - Brute Force"; content: "SSHD_LOGIN_FAILED_LIMIT"; parse_src_ip: 1; program: sshd; classtype: unsuccessful-user; sid: 5001643; threshold: type limit, track by_src, count 5, seconds 300; reference: url,wiki.quadrantsec.com/bin/view/Main/5001643; rev:2;)
+#alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] SSHD_LOGIN_FAILED"; content: "SSHD_LOGIN_FAILED"; program: sshd; parse_src_ip: 1; classtype: unsuccessful-user; sid: 5001644; reference: url,wiki.quadrantsec.com/bin/view/Main/5001644; rev:1;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] SSHD_LOGIN_FAILED - Brute force"; content: "SSHD_LOGIN_FAILED"; program: sshd; parse_src_ip: 1; classtype: unsuccessful-user; sid: 5001645; after: track by_src, count 5, seconds 300; threshold: type limit, track by_src, count 5, seconds 300; fwsam: src, 1 day; reference: url,wiki.quadrantsec.com/bin/view/Main/5001645; rev:1;)
+
+# Juniper Netscreens
+
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[NETSCREEN] Fragmented traffic"; program: Netscreen; content: "Fragmented traffic"; classtype: suspicious-traffic; reference: url,wiki.quadrantsec.com/bin/view/Main/5000396; sid: 5000396; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[NETSCREEN] FIN but no ACK bit"; program: Netscreen; content: "FIN but no ACK bit"; classtype: suspicious-traffic; reference: url,wiki.quadrantsec.com/bin/view/Main/5000397; sid: 5000397; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[NETSCREEN] Port scan!"; program: Netscreen; content: "Port scan"; classtype: network-scan; reference: url,wiki.quadrantsec.com/bin/view/Main/5000398; sid: 5000398; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[NETSCREEN] ICMP fragment"; program: Netscreen; content: "ICMP fragment"; classtype: suspicious-traffic; reference: url,wiki.quadrantsec.com/bin/view/Main/5000399; sid: 5000399; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[NETSCREEN] Malicious URL"; program: Netscreen; content: "Malicious URL"; classtype: suspicious-traffic; reference: url,wiki.quadrantsec.com/bin/view/Main/5000400; sid: 5000400; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[NETSCREEN] Large ICMP packet"; program: Netscreen; content: "Large ICMP packet"; classtype: suspicious-traffic; reference: url,wiki.quadrantsec.com/bin/view/Main/5000401; sid: 5000401; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[NETSCREEN] No tcp flag has been detected"; program: Netscreen; content: "No tcp flag has been detected"; classtype: suspicious-traffic; reference: url,wiki.quadrantsec.com/bin/view/Main/5000402; sid: 5000402; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[NETSCREEN] Denied traffic"; program: Netscreen; content: "action=Deny"; classtype: network-event; reference: url,wiki.quadrantsec.com/bin/view/Main/5000403; sid: 5000403; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[NETSCREEN] Syslog enabled"; program: Netscreen; content: "Syslog has been enabled"; classtype: system-event; reference: url,wiki.quadrantsec.com/bin/view/Main/5000404; sid:5000404; rev:1;)
+
+# Juniper Intrusion Prevention System Signatures by Iman Khosravi
+
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] The scheduled IDP security package update failed to start"; content: "IDP_SCHEDULEDUPDATE_START_FAILED"; classtype: program-error; reference: url,wiki.quadrantsec.com/bin/view/Main/5001129; sid: 5001129; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] IDP daemon encountered an internal error"; content: "IDP_INTERNAL_ERROR"; classtype: program-error; reference: url,wiki.quadrantsec.com/bin/view/Main/5001130; sid: 5001130; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] An attempt to start IDP policy daemon failed"; content: "IDP_DAEMON_INIT_FAILED"; classtype: program-error; reference: url,wiki.quadrantsec.com/bin/view/Main/5001131; sid: 5001131; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] IDP Attack log generated for attack"; content: "IDP_ATTACK_LOG_EVENT"; classtype: suspicious-traffic; reference: url,wiki.quadrantsec.com/bin/view/Main/5001132; sid: 5001132; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] IDP Attack log generated for attack in a logical system"; content: "IDP_ATTACK_LOG_EVENT_LS"; classtype: suspicious-traffic; reference: url,wiki.quadrantsec.com/bin/view/Main/5001133; sid: 5001133; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] IDP policy commit has completed"; content: "IDP_COMMIT_COMPLETED"; classtype: system-event; reference: url,wiki.quadrantsec.com/bin/view/Main/5001134; sid: 5001134; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] There was an error while trying to commit the active policy in IDPD"; content: "IDP_COMMIT_FAILED"; classtype: program-error; reference: url,wiki.quadrantsec.com/bin/view/Main/5001135; sid: 5001135; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] IDP IPv6 support is not enabled for the rulebase"; content: "IDP_IGNORED_IPV6_ADDRESSES"; classtype: system-event; reference: url,wiki.quadrantsec.com/bin/view/Main/5001136; sid: 5001136; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] IDP policy compiler encountered an error while compiling or packaging the policy"; content: "IDP_POLICY_COMPILATION_FAILED"; classtype: program-error; reference: url,wiki.quadrantsec.com/bin/view/Main/5001137; sid: 5001137; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] A compiled and optimized IDP policy could not be loaded into IDP engine"; content: "IDP_POLICY_LOAD_FAILED"; classtype: program-error; reference: url,wiki.quadrantsec.com/bin/view/Main/5001138; sid: 5001138; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] A compiled and optimized IDP policy was loaded successfully into the IDP engine"; content: "IDP_POLICY_LOAD_SUCCEEDED"; classtype: system-event; reference: url,wiki.quadrantsec.com/bin/view/Main/5001139; sid: 5001139; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] A running IDP policy could not be unloaded from IDP engine"; content: "IDP_POLICY_UNLOAD_FAILED"; classtype: program-error; reference: url,wiki.quadrantsec.com/bin/view/Main/5001140; sid: 5001140; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] A running IDP policy was unloaded successfully from the IDP engine"; content: "DP_POLICY_UNLOAD_SUCCEEDED"; classtype: system-event; reference: url,wiki.quadrantsec.com/bin/view/Main/5001141; sid: 5001141; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] The scheduled IDP security package update has started"; content: "IDP_SCHEDULED_UPDATE_STARTED"; classtype: system-event; reference: url,wiki.quadrantsec.com/bin/view/Main/5001142; sid: 5001142; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] IDP background process has returned the security package install result"; content: "IDP_SECURITY_INSTALL_RESULT"; classtype: system-event; reference: url,wiki.quadrantsec.com/bin/view/Main/5001143; sid: 5001143; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] IDP session threshold crossing event"; content: "IDP_SESSION_LOG_EVENT"; classtype: suspicious-traffic; reference: url,wiki.quadrantsec.com/bin/view/Main/5001144; sid: 5001144; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] IDP session threshold crossing event in a logical system"; content: "IDP_SESSION_LOG_EVENT_LS"; classtype: suspicious-traffic; reference: url,wiki.quadrantsec.com/bin/view/Main/5001145; sid: 5001145; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] IDP signature update license key has expired"; content: "IDP_SIGNATURE_LICENSE_EXPIRED"; classtype: program-error; reference: url,wiki.quadrantsec.com/bin/view/Main/5001146; sid: 5001146; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] application-level distributed denial-of-service (AppDDoS) state transition occurred"; content: "IDP_APPDDOS_APP_STATE_EVENT"; classtype: suspicious-traffic; reference: url,wiki.quadrantsec.com/bin/view/Main/5001147; sid: 5001147; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] application-level distributed denial-of-service (AppDDoS) state transition occurred in logical system"; content: "IDP_APPDDOS_APP_STATE_EVENT_LS"; classtype: suspicious-traffic; reference: url,wiki.quadrantsec.com/bin/view/Main/5001148; sid: 5001148; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] Application-level distributed denial-of-service (AppDDoS) attack in a logical system"; content: "IDP_APPDDOS_APP_ATTACK_EVENT_LS"; classtype: suspicious-traffic; reference: url,wiki.quadrantsec.com/bin/view/Main/5001149; sid: 5001149; rev:1;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[JUNIPER] Application-level distributed denial-of-service (AppDDoS) attack"; content: "IDP_APPDDOS_APP_ATTACK_EVENT"; classtype: suspicious-traffic; reference: url,wiki.quadrantsec.com/bin/view/Main/5001150; sid: 5001150; rev:1;)
+
+# Additional Juniper Netscreen rules by Adam Hall (ahall@quadrantsec.com)
+# 09/18/2012
+
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[NETSCREEN] SYN Flood"; program: Netscreen; content: "SYN flood"; classtype: denial-of-service; parse_src_ip: 1; reference: url,www.juniper.net/techpubs/software/screenos/screenos5.2.0/NS_Messages.pdf; sid: 5001611; rev:2;) 
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[NETSCREEN] Teardrop attack"; program: Netscreen; content: "Teardrop Attack"; classtype: denial-of-service; parse_src_ip: 1; reference: url,www.juniper.net/techpubs/software/screenos/screenos5.2.0/NS_Messages.pdf; sid: 5001612; rev:2;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[NETSCREEN] IP spoofing"; program: Netscreen; content: "IP spoofing"; classtype: suspicious-traffic; parse_src_ip: 1; reference: url,www.juniper.net/techpubs/software/screenos/screenos5.2.0/NS_Messages.pdf; sid: 5001613; rev:2;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[NETSCREEN] ICMP flood"; program: Netscreen; content: "ICMP flood"; classtype: suspicious-traffic; parse_src_ip: 1; reference: url,www.juniper.net/techpubs/software/screenos/screenos5.2.0/NS_Messages.pdf; sid: 5001614; rev:2;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[NETSCREEN] SYN fragment"; program: Netscreen; content: "SYN fragment"; classtype: suspicious-traffic; parse_src_ip: 1; reference: url,www.juniper.net/techpubs/software/screenos/screenos5.2.0/NS_Messages.pdf; sid: 5001615; rev:2;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[NETSCREEN] Unknown protocol"; program: Netscreen; content: "Unknown protocol"; classtype: suspicious-traffic; parse_src_ip: 1; reference: url,www.juniper.net/techpubs/software/screenos/screenos5.2.0/NS_Messages.pdf; sid: 5001616; rev:2;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[NETSCREEN] Bad IP option"; program: Netscreen; content: "Bad IP option"; classtype: suspicious-traffic; parse_src_ip: 1; reference: url,www.juniper.net/techpubs/software/screenos/screenos5.2.0/NS_Messages.pdf; sid: 5001617; rev:2;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[NETSCREEN] SYN-ACK-ACK"; program: Netscreen; content: "SYN-ACK-ACK"; classtype: suspicious-traffic; parse_src_ip: 1; reference: url,www.juniper.net/techpubs/software/screenos/screenos5.2.0/NS_Messages.pdf; sid: 5001618; rev:2;)
+alert syslog $EXTERNAL_NET any -> $HOME_NET any (msg: "[NETSCREEN] Connection refused by the DNS"; program: Netscreen; content: "Connection refused by the DNS"; classtype: suspicious-traffic; reference: url,www.juniper.net/techpubs/software/screenos/screenos5.2.0/NS_Messages.pdf; sid: 5001619; rev:1;)
+
+# Juniper VPN devices - Champ Clark (cclark@quadrantsec.com)
+
+#alert tcp $EXTERNAL_NET any -> $HOME_NET $HTTPS_PORT (msg: "[JUNIPER] VPN Login failed"; program: Juniper;  pcre: "/ Login failed | authentication failed /"; parse_src_ip: 1; classtype: unsuccessful-user; reference: url,wiki.quadrantsec.com/bin/view/Main/5002022; sid: 5002022; rev:1;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET $HTTPS_PORT (msg: "[JUNIPER] VPN Login failed - Brute Force"; program: Juniper; pcre: "/ Login failed | authentication failed /i"; parse_src_ip: 1; after: track by_src, count 10, seconds 300; threshold: type limit, track by_src, count 5, seconds 300; classtype: unsuccessful-user; reference: url,wiki.quadrantsec.com/bin/view/Main/5002023; sid: 5002023; rev:1;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET $HTTPS_PORT (msg: "[JUNIPER] Possible VPN Login bypass attempt"; program: Juniper; content: "not authenticated yet"; parse_src_ip: 1; threshold: type limit, track by_src, count 5, seconds 300; classtype: unsuccessful-user; reference: url,wiki.quadrantsec.com/bin/view/Main/5002024; sid: 5002024; rev:1;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET $HTTPS_PORT (msg: "[JUNIPER] VPN Unable to download virus signatures"; program: Juniper; content: "Unable to download current virus"; classtype: system-event; reference: url,wiki.quadrantsec.com/bin/view/Main/5002025; sid: 5002025; rev:3;)
+#alert tcp $EXTERNAL_NET any -> $HOME_NET $HTTPS_PORT (msg: "[JUNIPER] VPN - Possible scan/probe"; program: Juniper; content: "SSL negotiation failed"; parse_src_ip: 1; threshold: type limit, track by_src, count 5, seconds 300; classtype: suspicious-traffic; reference: url,wiki.quadrantsec.com/bin/view/Main/5002026; sid: 5002026; rev:1;)
+alert tcp $EXTERNAL_NET any -> $HOME_NET $HTTPS_PORT (msg: "[JUNIPER] VPN - Policy violation"; program: Juniper; content: "Host Checker policy"; parse_src_ip: 1; classtype: unsuccessful-user; reference: url,wiki.quadrantsec.com/bin/view/Main/5002027; sid: 5002027; rev:1;)
+
+
