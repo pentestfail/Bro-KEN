@@ -1,0 +1,20 @@
+PUT /_template/logstash
+{
+  "template": "logstash-*", 
+  "order":    1, 
+  "settings": { "number_of_shards": 1},
+  "date_detection" : true,
+  "numeric_detection" : true,
+  "action.disable_delete_all_indices": true,
+  "index.mapper.dynamic": true,
+  "mappings": {
+      "_default_": {
+          "dynamic_date_formats": ["yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd", "date_optional_time", "date_time_no_millis"]
+              { 
+          }
+      }
+  },
+  "aliases": {
+      "last_3_months": {}
+  }
+}

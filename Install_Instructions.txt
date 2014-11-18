@@ -2,7 +2,7 @@
 # Install Dependencies                       #
 ##############################################
 
-apt-get install -y openjdk-7-jre-headless, nginx, pv, htop, socat,
+apt-get install -y openjdk-7-jre-headless, nginx, pv, htop, socat, geoip-bin
 
 ##############################################
 # Configure UFW Firewall                     #
@@ -57,6 +57,9 @@ cp nxlog.conf /etc/nxlog/nxlog.conf
 # Create certificates for SSL (directory in config)
 mkdir /etc/nxlog/ssl
 openssl req -x509 -nodes -days 1095 -newkey rsa:2048 -keyout /etc/nxlog/ssl/nxlog.key -out /etc/nxlog/ssl/nxlog.crt
+
+#Install Maxmind GeoIP Modules for IP lookups if removed from dependencies
+#apt-get install geoip-bin
 
 
 ##############################################
