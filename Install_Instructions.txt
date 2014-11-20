@@ -82,6 +82,6 @@ tar xvfz sagan-current.tar.gz
 tar xvfz sagan-rules-current.tar.gz
 
 #Confirm dependencies and build source
-apt-get install -y libpcre3-dev libpcre3 libdumbnet1 libdumbnet-dev libjson0 libjson0-dev
+apt-get install -y libpcre3-dev libpcre3 libdumbnet1 libdumbnet-dev libjson0 libjson0-dev liblognorm-dev
 git clone https://github.com/rsyslog/libestr
 cd libestr
